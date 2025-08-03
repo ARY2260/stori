@@ -1,0 +1,3 @@
+pip install ale-py==0.10.2
+pip install "gymnasium[atari]"
+pip install "gymnasium[other]"

@@ -179,7 +179,9 @@ def make_env(config, mode, id):
                     'random_stochasticity_prob': 0.25, # mode 3: keep around 0.0005
                 },
                 'action_independent_concept_drift': {
-                    'concept_drift': NotImplementedError
+                    'temporal_mode': 'sudden', # 'sudden' or 'cyclic'
+                    'temporal_threshold': 500,
+                    'secondary_concept_type': 5,
                 },
             },
             'partial_observation': {

@@ -26,7 +26,8 @@ class PartialObservationWrapper(CutomGymnasiumWrapper):
 
         # Replace the _screen method from Atari env
         self.env._screen = self._screen
-    
+        self.manipulation = True # if false, returns original _screen behavior
+
     def _manipulate_screen(self, array):
         """Modify the screen in buffer"""
 
@@ -41,7 +42,8 @@ class PartialObservationWrapper(CutomGymnasiumWrapper):
     
     def _screen(self, array):
         self.env._ale.getScreenRGB(array)
-        self._manipulate_screen(array)
+        if self.manipulation:
+            self._manipulate_screen(array)
 
 
 class ActionDependentStochasticityWrapper(ActionWrapper):
@@ -136,6 +138,81 @@ class ActionIndependentRandomStochasticityWrapper(ActionWrapper):
             return self._regenerate_hit_block(action)
 
 
+class ActionIndependentConceptDriftWrapper(CutomGymnasiumWrapper):
+    """
+    Wrapper that implements action independent concept drift in the environment.
+
+    Modes:
+        temporal_mode 'sudden': The environment concept (stochasticity type) switches suddenly after a fixed number of steps (temporal_threshold).
+        temporal_mode 'cyclic': The environment concept alternates cyclically every temporal_threshold steps between the original and secondary concept.
+
+    Args:
+        env: The environment to wrap.
+        config: Dictionary with keys:
+            - 'temporal_mode': 'sudden' or 'cyclic'
+            - 'temporal_threshold': Number of steps before switching concepts
+            - 'secondary_concept_type': The stochasticity type to switch to
+        StochasticEnv_instance: An instance that manages the stochastic environment and can update its type.
+    """
+    def __init__(self, env, config, StochasticEnv_instance):
+        super().__init__(env)
+        self._step_count = 0
+        self.current_cycle = 0
+        self.temporal_mode = config['temporal_mode']
+        self.temporal_threshold = config['temporal_threshold']
+        self.secondary_concept_type = config['secondary_concept_type']
+        self.StochasticEnv_instance = StochasticEnv_instance
+
+    def update_env_concept(self):
+        print(f"updating env concept to stochasticity type: {self.secondary_concept_type}")
+        if self.secondary_concept_type == 3:
+            raise RecursionError("`Concept drift` is not supported for secondary concept")
+        if self.secondary_concept_type == 4:
+            raise ValueError("`Partial observation` is the initial concept")
+        self.StochasticEnv_instance.type = self.secondary_concept_type
+        self.env = self.StochasticEnv_instance.get_env(self.env)
+
+    def revert_env_concept(self):
+        print(f"reverting to original concept")
+        if hasattr(self.env, 'manipulation'):
+            print(f"reverting to original screen")
+            self.env.manipulation = False
+        if hasattr(self.env, 'env'):
+            self.env = self.env.env # for type 5
+        else:
+            self.env._env = self.env._env.env # for type 1, 2
+
+    def get_cycle(self):
+        if self.temporal_mode == 'cyclic':
+            return 0 if (self._step_count // self.temporal_threshold) % 2 == 0 else 1
+        else:
+            return 0
+
+    def step(self, action):
+
+        if self.temporal_mode == 'sudden':
+            if self._step_count == self.temporal_threshold - 1:
+                self.update_env_concept()
+
+        elif self.temporal_mode == 'cyclic': # currently bi-cyclic
+            _cycle = self.get_cycle()
+            if _cycle != self.current_cycle:
+                if self.current_cycle == 0:
+                    self.update_env_concept()
+                else:
+                    self.revert_env_concept()
+                self.current_cycle = _cycle
+
+        obs, reward, done, info = self.env.step(action)
+        self._step_count += 1
+        return obs, reward, done, info
+
+    def reset(self, *args, **kwargs):
+        obs = self.env.reset(*args, **kwargs)
+        self._step_count = 0
+        return obs
+
+
 class StochasticEnv:
     """
     Environment type docstrings:
@@ -172,9 +249,9 @@ class StochasticEnv:
             env._env = ActionIndependentRandomStochasticityWrapper(env._env, config=self.config['intrinsic_stochasticity']['action_independent_random'])
             return env
         elif self.type == 3:
-            raise NotImplementedError
+            return ActionIndependentConceptDriftWrapper(env, config=self.config['intrinsic_stochasticity']['action_independent_concept_drift'], StochasticEnv_instance=self)
         elif self.type == 4: # default
-            raise env
+            return env
         elif self.type == 5:
             return PartialObservationWrapper(env, config=self.config['partial_observation'])
 
@@ -204,7 +281,9 @@ if __name__ == "__main__":
                 'random_stochasticity_prob': 0.25, # mode 3: keep around 0.0005
             },
             'action_independent_concept_drift': {
-                'concept_drift': NotImplementedError
+                'temporal_mode': 'sudden', # 'sudden' or 'cyclic'
+                'temporal_threshold': 500,
+                'secondary_concept_type': 5,
             },
         },
         'partial_observation': {

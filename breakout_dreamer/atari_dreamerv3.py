@@ -3,36 +3,25 @@ import numpy as np
 import ale_py
 
 
-class GymnasiumToGymWrapper:
+class GymnasiumToGymWrapper(gym.Wrapper):
     """Wrapper to convert gymnasium API back to old gym API"""
-    
+
     def __init__(self, env):
-        self.env = env
+        super().__init__(env)
         
     def step(self, action):
         obs, reward, terminated, truncated, info = self.env.step(action)
         # Combine terminated and truncated into done (old gym style)
         done = terminated or truncated
         return obs, reward, done, info
-    
-    def reset(self):
-        obs, info = self.env.reset()
+
+    def reset(self, seed=None, options=None):
+        obs, _ = self.env.reset(seed=seed, options=options)
         return obs
-    
+
     def close(self):
         return self.env.close()
-    
-    @property
-    def observation_space(self):
-        return self.env.observation_space
-    
-    @property
-    def action_space(self):
-        return self.env.action_space
-    
-    @property
-    def unwrapped(self):
-        return self.env.unwrapped
+
 
 
 class Atari:

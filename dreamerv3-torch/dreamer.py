@@ -174,7 +174,11 @@ def make_env(config, mode, id):
                 'action_dependent': {
                     'stochastic_action_prob': 0.5,
                     },
-                'action_independent': {
+                'action_independent_random': {
+                    'mode': '2',
+                    'random_stochasticity_prob': 0.25, # mode 3: keep around 0.0005
+                },
+                'action_independent_concept_drift': {
                     'concept_drift': NotImplementedError
                 },
             },

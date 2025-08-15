@@ -1,0 +1,1 @@
+from stochastic_atari.atari_envs.breakout import get_breakout_wrapper_registry

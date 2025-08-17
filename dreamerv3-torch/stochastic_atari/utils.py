@@ -133,3 +133,21 @@ def binary_to_scaled_decimal(binary_string, reverse=True, target_max=255):
     decimal = int(binary_string, 2)
     scaled = decimal * scale_factor
     return scaled
+
+def blackout_obs(array, region, color = [0, 0, 0]):
+    array[region['min_y']:region['max_y']+1, region['min_x']:region['max_x']+1] = color
+    return array
+
+def _save_restore_handler(env, mode_update_ram_dict, get_obs=True, verbose=False):
+    if get_obs:
+        # save env state before modification
+        saved_state = env.unwrapped.clone_state(True)
+        update_ram_state(env, mode_update_ram_dict, verbose=verbose)
+        obs, _, _, _ = env.step(0)
+        # restore env state
+        env.unwrapped.restore_state(saved_state)
+        del saved_state
+        return obs
+    else:
+        update_ram_state(env, mode_update_ram_dict, verbose=verbose)
+        return None

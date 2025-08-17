@@ -1,10 +1,11 @@
-from stochastic_atari.atari_envs import get_breakout_wrapper_registry
 from stochastic_atari.base_stochastic_env_classes import StochasticEnv
+from stochastic_atari.atari_envs import get_breakout_wrapper_registry, get_boxing_wrapper_registry
 from typing import Dict, Any
 
 # Game registry mapping
 GAME_REGISTRIES = {
     'breakout': get_breakout_wrapper_registry,
+    'boxing': get_boxing_wrapper_registry,
     # Add more games here as needed
 }
 

@@ -2,6 +2,9 @@ import numpy as np
 from typing import Dict, Any, Type
 from gymnasium.core import ActionWrapper, Wrapper
 from stochastic_atari.utils import crop_obs_mode
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CutomGymnasiumWrapper(Wrapper):
@@ -26,6 +29,7 @@ class ActionDependentStochasticityWrapper(ActionWrapper):
         self.prob = config['stochastic_action_prob']
 
     def action(self, action):
+        logger.debug(f"using action() method of ActionDependentStochasticityWrapper")
         if np.random.random() < self.prob:
             # Choose random action
             return self.env.action_space.sample()
@@ -127,6 +131,7 @@ class ActionIndependentConceptDriftWrapper(CutomGymnasiumWrapper):
         return obs, reward, done, info
 
     def reset(self, *args, **kwargs):
+        logger.debug(f"using reset() method of ActionIndependentConceptDriftWrapper")
         obs = self.env.reset(*args, **kwargs)
         self._step_count = 0
         return obs
@@ -134,7 +139,7 @@ class ActionIndependentConceptDriftWrapper(CutomGymnasiumWrapper):
 
 class PartialObservationWrapper(CutomGymnasiumWrapper):
     """Custom wrapper that modifies observations"""
-    
+
     def __init__(self, env, config):
         super().__init__(env)
         self.config = config
@@ -153,7 +158,7 @@ class PartialObservationWrapper(CutomGymnasiumWrapper):
             elif self.config['type'] == 'crop':
                 self._crop_obs_mode(array, self.config['mode'])
             elif self.config['type'] == 'ram':
-                array = self._ram_obs_mode(self.env._env, self.config['mode'])
+                array[:] = self._ram_obs_mode(self.env._env, self.config['mode'])
             else:
                 raise NotImplementedError(f"Type {self.config['type']} not implemented")
 

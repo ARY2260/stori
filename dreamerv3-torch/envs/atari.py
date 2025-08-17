@@ -9,7 +9,8 @@ class GymnasiumToGymWrapper(gym.Wrapper):
 
     def __init__(self, env):
         super().__init__(env)
-        
+        self.env.unwrapped.original_ram_state = self.env.unwrapped.ale.getRAM()
+
     def step(self, action):
         obs, reward, terminated, truncated, info = self.env.step(action)
         # Combine terminated and truncated into done (old gym style)

@@ -1,82 +1,12 @@
 import random
 import numpy as np
 from stochastic_atari.base_stochastic_env_classes import ActionDependentStochasticityWrapper, ActionIndependentRandomStochasticityWrapper, ActionIndependentConceptDriftWrapper, PartialObservationWrapper
-from stochastic_atari.utils import update_ram_state
+from stochastic_atari.utils import update_ram_state, blackout_obs
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-######################### Action independent random stochasticity wrapper for Breakout #########################
-class BreakoutActionIndependentRandomStochasticityWrapper(ActionIndependentRandomStochasticityWrapper):
-    """Wrapper that implements action independent random stochasticity in internal ale _env.
-
-    Note: Does not revert the score on screen.
-
-    Modes:
-       mode '0': No stochasticity.
-       mode '1': Block hit cancel - if a block is hit, the RAM is reverted to the previous state, effectively canceling the block hit.
-       mode '2': Block hit cancel (reward reverted) - if a block is hit, the RAM is reverted to the previous state, effectively canceling the block hit.
-       mode '3': Regenerate hit block - after a block is hit, with some probability, a randomly picked block RAM index is reverted to its original value, regenerating a block.
-    """
-
-    def _block_hit_cancel(self, action, cancel_reward=True, verbose=False):
-        """
-        Takes affect if modified, in the next step.
-        If cancel_reward is True, the reward is set to 0 if block hit is cancelled.
-        """
-        self.previous_ram_state = self.env.unwrapped.ale.getRAM()
-        obs, reward, done, info = self.env.step(action)
-        current_ram_state = self.env.unwrapped.ale.getRAM()
-        if any(current_ram_state[:36] != self.original_ram_state[:36]):
-            changed_indices = [i for i in range(36) if current_ram_state[i] != self.previous_ram_state[i]]
-            if len(changed_indices) > 0 and random.random() < self.prob:
-                for i in changed_indices:
-                    self.env.unwrapped.ale.setRAM(i, self.previous_ram_state[i])
-                ## reset scores and lives to previous state (does not work)
-                # for i in range(81,91):
-                #     if verbose:
-                #         print(f"resetting {i} to {self.previous_ram_state[i]} from {current_ram_state[i]}")
-                #     self.env.unwrapped.ale.setRAM(i, self.previous_ram_state[i])
-                if verbose:
-                    print(f"block hit cancelled")
-                if cancel_reward:
-                    reward = 0.0
-                    if verbose:
-                        print(f"reward reverted to 0")
-        return obs, reward, done, info
-
-    def _regenerate_hit_block(self, action, verbose=False):
-        """
-        Takes affect if modified, in the next step.
-        """
-        obs, reward, done, info = self.env.step(action)
-        current_ram_state = self.env.unwrapped.ale.getRAM()
-        # list of indices that changed
-        changed_indices = [i for i in range(36) if current_ram_state[i] != self.original_ram_state[i]]
-        # randomly choose a changed index and update its value to the original value
-        if len(changed_indices) > 0 and random.random() < self.prob:
-            random_index = random.choice(changed_indices)
-            self.env.unwrapped.ale.setRAM(random_index, self.original_ram_state[random_index])
-            if verbose:
-                print(f"hit block regenerated")
-        return obs, reward, done, info
-
-    def reset(self, seed=None, options=None):
-        obs = self.env.reset(seed=seed, options=options)
-        self.original_ram_state = self.env.unwrapped.ale.getRAM()
-        return obs
-
-    def step(self, action):
-        if self.mode == '0':
-            return self.env.step(action)
-        elif self.mode == '1':
-            return self._block_hit_cancel(action, cancel_reward=False, verbose=True)
-        elif self.mode == '2':
-            return self._block_hit_cancel(action, cancel_reward=True, verbose=True)
-        elif self.mode == '3':
-            return self._regenerate_hit_block(action)
 
 ######################### Blackout Partial observation utils for Breakout #########################
 Blocks_region = {'min_x': 8,
@@ -110,9 +40,7 @@ Ball_missing_region = {'top': {'min_x': 8,
 
 blackout_regions = [Blocks_region, Paddle_region, Score_region, Ball_missing_region['top'], Ball_missing_region['middle'], Ball_missing_region['bottom']]
 
-def blackout_obs(array, region):
-    array[region['min_y']:region['max_y']+1, region['min_x']:region['max_x']+1] = [0, 0, 0]
-    return array
+
 
 def blackout_obs_mode(array, mode='0'):
     """
@@ -311,6 +239,81 @@ def ram_obs_modification_mode(env, mode='0', verbose=False):
 
     else:
         raise ValueError(f"Unknown RAM modification mode: {mode}")
+
+
+######################### Action independent random stochasticity wrapper for Breakout #########################
+class BreakoutActionIndependentRandomStochasticityWrapper(ActionIndependentRandomStochasticityWrapper):
+    """Wrapper that implements action independent random stochasticity in internal ale _env.
+
+    Note: Does not revert the score on screen.
+
+    Modes:
+       mode '0': No stochasticity.
+       mode '1': Block hit cancel - if a block is hit, the RAM is reverted to the previous state, effectively canceling the block hit.
+       mode '2': Block hit cancel (reward reverted) - if a block is hit, the RAM is reverted to the previous state, effectively canceling the block hit.
+       mode '3': Regenerate hit block - after a block is hit, with some probability, a randomly picked block RAM index is reverted to its original value, regenerating a block.
+    """
+
+    def __init__(self, env, config):
+        super().__init__(env, config)
+        self.original_ram_state = self.env.unwrapped.original_ram_state
+
+    def _block_hit_cancel(self, action, cancel_reward=True, verbose=False):
+        """
+        Takes affect if modified, in the next step.
+        If cancel_reward is True, the reward is set to 0 if block hit is cancelled.
+        """
+        self.previous_ram_state = self.env.unwrapped.ale.getRAM()
+        obs, reward, done, info = self.env.step(action)
+        current_ram_state = self.env.unwrapped.ale.getRAM()
+        if any(current_ram_state[:36] != self.original_ram_state[:36]):
+            changed_indices = [i for i in range(36) if current_ram_state[i] != self.previous_ram_state[i]]
+            if len(changed_indices) > 0 and random.random() < self.prob:
+                for i in changed_indices:
+                    self.env.unwrapped.ale.setRAM(i, self.previous_ram_state[i])
+                ## reset scores and lives to previous state (does not work)
+                # for i in range(81,91):
+                #     if verbose:
+                #         print(f"resetting {i} to {self.previous_ram_state[i]} from {current_ram_state[i]}")
+                #     self.env.unwrapped.ale.setRAM(i, self.previous_ram_state[i])
+                if verbose:
+                    print(f"block hit cancelled")
+                if cancel_reward:
+                    reward = 0.0
+                    if verbose:
+                        print(f"reward reverted to 0")
+        return obs, reward, done, info
+
+    def _regenerate_hit_block(self, action, verbose=False):
+        """
+        Takes affect if modified, in the next step.
+        """
+        obs, reward, done, info = self.env.step(action)
+        current_ram_state = self.env.unwrapped.ale.getRAM()
+        # list of indices that changed
+        changed_indices = [i for i in range(36) if current_ram_state[i] != self.original_ram_state[i]]
+        # randomly choose a changed index and update its value to the original value
+        if len(changed_indices) > 0 and random.random() < self.prob:
+            random_index = random.choice(changed_indices)
+            self.env.unwrapped.ale.setRAM(random_index, self.original_ram_state[random_index])
+            if verbose:
+                print(f"hit block regenerated")
+        return obs, reward, done, info
+
+    def reset(self, seed=None, options=None):
+        obs = self.env.reset(seed=seed, options=options)
+        self.original_ram_state = self.env.unwrapped.ale.getRAM()
+        return obs
+
+    def step(self, action):
+        if self.mode == '0':
+            return self.env.step(action)
+        elif self.mode == '1':
+            return self._block_hit_cancel(action, cancel_reward=False, verbose=True)
+        elif self.mode == '2':
+            return self._block_hit_cancel(action, cancel_reward=True, verbose=True)
+        elif self.mode == '3':
+            return self._regenerate_hit_block(action)
 
 
 ######################### Partial observation wrapper for Breakout #########################

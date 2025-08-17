@@ -15,7 +15,8 @@ import exploration as expl
 import models
 import tools
 import envs.wrappers as wrappers
-import envs.stochastic_wrappers as stochastic_wrappers
+# import envs.stochastic_wrappers as stochastic_wrappers
+from stochastic_atari import create_stochasticity_profile
 from parallel import Parallel, Damy
 
 import torch
@@ -191,8 +192,8 @@ def make_env(config, mode, id):
             },
         }
 
-        stochasticity_wrapper = stochastic_wrappers.StochasticEnv(type=5, config=stochasticity_config)
-        env = stochasticity_wrapper.get_env(env)
+        stochasticity_profile = create_stochasticity_profile(game_name=task, type=5, config=stochasticity_config)
+        env = stochasticity_profile.get_env(env)
         env = wrappers.OneHotAction(env)
     elif suite == "dmlab":
         import envs.dmlab as dmlab

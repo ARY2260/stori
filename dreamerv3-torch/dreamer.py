@@ -145,7 +145,7 @@ def make_dataset(episodes, config):
     return dataset
 
 
-def make_env(config, mode, id):
+def make_env(config, mode, id, stochasticity_config):
     suite, task = config.task.split("_", 1)
     if suite == "dmc":
         import envs.dmc as dmc
@@ -170,29 +170,7 @@ def make_env(config, mode, id):
             seed=config.seed + id,
         )
 
-        stochasticity_config = {
-            'intrinsic_stochasticity': {
-                'action_dependent': {
-                    'stochastic_action_prob': 0.5,
-                    },
-                'action_independent_random': {
-                    'mode': '2',
-                    'random_stochasticity_prob': 0.25, # mode 3: keep around 0.0005
-                },
-                'action_independent_concept_drift': {
-                    'temporal_mode': 'sudden', # 'sudden' or 'cyclic'
-                    'temporal_threshold': 500,
-                    'secondary_concept_type': 5,
-                },
-            },
-            'partial_observation': {
-                    'type': 'crop', # 'blackout' or 'crop' or 'ram'
-                    'mode': '1', # mode 1 in ram is buggy
-                    'prob': 0.75,
-            },
-        }
-
-        stochasticity_profile = create_stochasticity_profile(game_name=task, type=5, config=stochasticity_config)
+        stochasticity_profile = create_stochasticity_profile(game_name=task, type=stochasticity_config['stochasticity_type'], config=stochasticity_config)
         env = stochasticity_profile.get_env(env)
         env = wrappers.OneHotAction(env)
     elif suite == "dmlab":
@@ -230,7 +208,7 @@ def make_env(config, mode, id):
     return env
 
 
-def main(config):
+def main(config, stochasticity_config):
     tools.set_seed_everywhere(config.seed)
     if config.deterministic_run:
         tools.enable_deterministic_run()
@@ -261,7 +239,7 @@ def main(config):
     else:
         directory = config.evaldir
     eval_eps = tools.load_episodes(directory, limit=1)
-    make = lambda mode, id: make_env(config, mode, id)
+    make = lambda mode, id: make_env(config, mode, id, stochasticity_config)
     train_envs = [make("train", i) for i in range(config.envs)]
     eval_envs = [make("eval", i) for i in range(config.envs)]
     if config.parallel:
@@ -389,4 +367,51 @@ if __name__ == "__main__":
     for key, value in sorted(defaults.items(), key=lambda x: x[0]):
         arg_type = tools.args_type(value)
         parser.add_argument(f"--{key}", type=arg_type, default=arg_type(value))
-    main(parser.parse_args(remaining))
+    config, remaining_stochastic_args = parser.parse_known_args(remaining)
+
+    # add stochasticity config
+    stochasticity_config = yaml.safe_load(
+        (pathlib.Path(sys.argv[0]).parent / "configs_stochastic.yaml").read_text()
+    )
+    stochasticity_config = stochasticity_config["defaults"]
+    # Support nested keys in argparse, e.g., --a.b.c 1
+    def nested_dict_from_flat(flat):
+        """Convert flat dict with dot keys to nested dict."""
+        result = {}
+        for k, v in flat.items():
+            keys = k.split('.')
+            d = result
+            for key in keys[:-1]:
+                if key not in d or not isinstance(d[key], dict):
+                    d[key] = {}
+                d = d[key]
+            d[keys[-1]] = v
+        return result
+
+    # Flatten all nested keys in defaults for argparse
+    def flatten_dict(d, parent_key='', sep='.'):
+        items = []
+        for k, v in d.items():
+            new_key = f"{parent_key}{sep}{k}" if parent_key else k
+            if isinstance(v, dict):
+                items.extend(flatten_dict(v, new_key, sep=sep))
+            else:
+                items.append((new_key, v))
+        return items
+
+    stochasticity_parser = argparse.ArgumentParser()
+    # Also flatten stochasticity_config and add to parser
+    flat_stoch = flatten_dict(stochasticity_config)
+    for key, value in sorted(flat_stoch, key=lambda x: x[0]):
+        arg_type = tools.args_type(value)
+        stochasticity_parser.add_argument(f"--{key}", type=arg_type, default=value)
+
+    # Parse args and build nested dict from flat keys
+    parsed_args = stochasticity_parser.parse_args(remaining_stochastic_args)
+    args_dict = vars(parsed_args)
+
+    nested_args = nested_dict_from_flat(args_dict)
+
+    stochasticity_config.update(nested_args)
+    print("Stochasticity config", stochasticity_config)
+    main(config, stochasticity_config)

@@ -1,0 +1,13 @@
+# torch
+# torchaudio
+# torchvision
+yacs
+tensorboardX
+tensorboard
+moviepy
+colorama
+einops
+tqdm
+opencv-python
+ruamel.yaml==0.17.4
+# gymnasium[atari,accept-rom-license]

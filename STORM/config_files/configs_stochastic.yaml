@@ -1,0 +1,16 @@
+defaults:
+  stochasticity_type: 4
+  intrinsic_stochasticity:
+    action_dependent:
+      stochastic_action_prob: 0.5
+    action_independent_random:
+      mode: '2'
+      random_stochasticity_prob: 0.25
+    action_independent_concept_drift:
+      temporal_mode: 'sudden'
+      temporal_threshold: 500
+      secondary_concept_type: 5
+  partial_observation:
+    type: 'crop'
+    mode: '1'
+    prob: 0.75

@@ -114,6 +114,7 @@ class ActionIndependentConceptDriftWrapper(CutomGymnasiumWrapper):
         if self.temporal_mode == 'sudden':
             if self._step_count == self.temporal_threshold - 1:
                 self.update_env_concept()
+                self.current_cycle = 1
 
         elif self.temporal_mode == 'cyclic': # currently bi-cyclic
             _cycle = self.get_cycle()
@@ -132,6 +133,11 @@ class ActionIndependentConceptDriftWrapper(CutomGymnasiumWrapper):
 
     def reset(self, *args, **kwargs):
         logger.debug(f"using reset() method of ActionIndependentConceptDriftWrapper")
+        if self.current_cycle != 0:
+            print(f"resetting to original concept")
+            self.revert_env_concept()
+            self.current_cycle = 0
+
         obs = self.env.reset(*args, **kwargs)
         self._step_count = 0
         return obs

@@ -91,9 +91,9 @@ class ActionIndependentConceptDriftWrapper(ActionWrapper):
 
     def revert_env_concept(self):
         print(f"reverting to original concept")
-        # if hasattr(self.env, 'manipulation'):
-        #     print(f"reverting to original obs")
-        #     self.env.manipulation = False
+        if hasattr(self.env, 'manipulation'):
+            print(f"reverting to original obs")
+            self.env.manipulation = False
         self.env = self.env.env
 
     def get_cycle(self):
@@ -105,8 +105,9 @@ class ActionIndependentConceptDriftWrapper(ActionWrapper):
     def step(self, action):
 
         if self.temporal_mode == 'sudden':
-            if self._step_count == self.temporal_threshold - 1:
+            if self._step_count == self.temporal_threshold - 1 and self.current_cycle != 1:
                 self.update_env_concept()
+                self.current_cycle = 1
 
         elif self.temporal_mode == 'cyclic': # currently bi-cyclic
             _cycle = self.get_cycle()
@@ -128,6 +129,12 @@ class ActionIndependentConceptDriftWrapper(ActionWrapper):
 
     def reset(self, *args, **kwargs):
         logger.debug(f"using reset() method of ActionIndependentConceptDriftWrapper")
+
+        if self.current_cycle != 0:
+            print(f"resetting to original concept")
+            self.revert_env_concept()
+            self.current_cycle = 0
+
         obs = self.env.reset(*args, **kwargs)
         self._step_count = 0
         self._noskip_step_count = 0

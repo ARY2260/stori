@@ -61,10 +61,10 @@ def build_vec_env(env_name, image_size, num_envs, stochasticity_config):
 
 
 def eval_episodes(num_episode, env_name, max_steps, num_envs, image_size,
-                  world_model: WorldModel, agent: agents.ActorCriticAgent):
+                  world_model: WorldModel, agent: agents.ActorCriticAgent, stochasticity_config):
     world_model.eval()
     agent.eval()
-    vec_env = build_vec_env(env_name, image_size, num_envs=num_envs)
+    vec_env = build_vec_env(env_name, image_size, num_envs=num_envs, stochasticity_config=stochasticity_config)
     print("Current env: " + colorama.Fore.YELLOW + f"{env_name}" + colorama.Style.RESET_ALL)
     sum_reward = np.zeros(num_envs)
     current_obs, current_info = vec_env.reset()
@@ -176,7 +176,7 @@ if __name__ == "__main__":
 
     # build and load model/agent
     import train
-    dummy_env = build_single_env(args.env_name, conf.BasicSettings.ImageSize)
+    dummy_env = build_single_env(args.env_name, conf.BasicSettings.ImageSize, stochasticity_config=stochasticity_config)
     action_dim = dummy_env.action_space.n
     world_model = train.build_world_model(conf, action_dim)
     agent = train.build_agent(conf, action_dim)
@@ -200,7 +200,8 @@ if __name__ == "__main__":
             max_steps=conf.JointTrainAgent.SampleMaxSteps,
             image_size=conf.BasicSettings.ImageSize,
             world_model=world_model,
-            agent=agent
+            agent=agent,
+            stochasticity_config=stochasticity_config,
         )
         results.append([step, episode_avg_return])
     with open(f"eval_result/{args.run_name}.csv", "w") as fout:

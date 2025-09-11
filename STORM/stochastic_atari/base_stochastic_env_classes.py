@@ -159,7 +159,9 @@ class PartialObservationWrapper(ObservationWrapper):
             elif self.config['type'] == 'crop':
                 self._crop_obs_mode(array, self.config['mode'])
             elif self.config['type'] == 'ram':
-                array[:] = self._ram_obs_mode(self.env, self.config['mode'])
+                array_modified = self._ram_obs_mode(self.env, self.config['mode'])
+                if array_modified is not None:
+                    array[:] = array_modified
             else:
                 raise NotImplementedError(f"Type {self.config['type']} not implemented")
 

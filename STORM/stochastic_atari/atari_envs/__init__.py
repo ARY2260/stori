@@ -1,2 +1,3 @@
 from stochastic_atari.atari_envs.breakout import get_breakout_wrapper_registry
 from stochastic_atari.atari_envs.boxing import get_boxing_wrapper_registry
+from stochastic_atari.atari_envs.gopher import get_gopher_wrapper_registry

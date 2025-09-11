@@ -131,7 +131,7 @@ crafter:
 
 atari100k:
   steps: 4e5
-  envs: 1
+  envs: 3
   action_repeat: 4
   train_ratio: 1024
   video_pred_log: true

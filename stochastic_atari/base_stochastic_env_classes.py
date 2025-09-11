@@ -1,27 +1,21 @@
 import numpy as np
 from typing import Dict, Any, Type
-from gymnasium.core import ActionWrapper, Wrapper
+from gymnasium.core import ActionWrapper, ObservationWrapper, Wrapper
 from stochastic_atari.utils import crop_obs_mode
 import logging
 
 logger = logging.getLogger(__name__)
 
+class InternalGymWrapper(Wrapper):
+    """Wrapper to set original ram state"""
 
-class CutomGymnasiumWrapper(Wrapper):
-    """Wrapper to convert gymnasium API back to old gym API"""
     def __init__(self, env):
-        self.env = env
-        self._action_space = None
-        self._observation_space = None
-        self._metadata = None
-        self._cached_spec = None
-    
-    def reset(self):
-        return self.env.reset()
+        super().__init__(env)
+        self.env.unwrapped.original_ram_state = self.env.unwrapped.ale.getRAM()
 
 
 class ActionDependentStochasticityWrapper(ActionWrapper):
-    """Wrapper that implements action dependent stochasticity in internal ale _env.
+    """Wrapper that implements action dependent stochasticity.
     """
 
     def __init__(self, env, config):
@@ -39,7 +33,7 @@ class ActionDependentStochasticityWrapper(ActionWrapper):
 
 
 class ActionIndependentRandomStochasticityWrapper(ActionWrapper):
-    """Wrapper that implements action independent random stochasticity in internal ale _env.
+    """Wrapper that implements action independent random stochasticity.
     
     Note: This is an abstract class that needs to be implemented for each environment.
 
@@ -59,7 +53,7 @@ class ActionIndependentRandomStochasticityWrapper(ActionWrapper):
             raise NotImplementedError(f"Mode {self.mode} not implemented")
 
 
-class ActionIndependentConceptDriftWrapper(CutomGymnasiumWrapper):
+class ActionIndependentConceptDriftWrapper(ActionWrapper):
     """
     Wrapper that implements action independent concept drift in the environment.
 
@@ -78,10 +72,12 @@ class ActionIndependentConceptDriftWrapper(CutomGymnasiumWrapper):
     def __init__(self, env, config, StochasticEnv_instance):
         super().__init__(env)
         self._step_count = 0
+        self._noskip_step_count = 0 # for skip correction in step count where skip is not part of original env
         self.current_cycle = 0
         self.temporal_mode = config['temporal_mode']
         self.temporal_threshold = config['temporal_threshold']
         self.secondary_concept_type = config['secondary_concept_type']
+        self.skip = config.get('skip', 1) # since skip is not part of original env, we need to add it here
         self.StochasticEnv_instance = StochasticEnv_instance
 
     def update_env_concept(self):
@@ -96,12 +92,9 @@ class ActionIndependentConceptDriftWrapper(CutomGymnasiumWrapper):
     def revert_env_concept(self):
         print(f"reverting to original concept")
         if hasattr(self.env, 'manipulation'):
-            print(f"reverting to original screen")
+            print(f"reverting to original obs")
             self.env.manipulation = False
-        if hasattr(self.env, 'env'):
-            self.env = self.env.env # for type 5
-        else:
-            self.env._env = self.env._env.env # for type 1, 2
+        self.env = self.env.env
 
     def get_cycle(self):
         if self.temporal_mode == 'cyclic':
@@ -112,7 +105,7 @@ class ActionIndependentConceptDriftWrapper(CutomGymnasiumWrapper):
     def step(self, action):
 
         if self.temporal_mode == 'sudden':
-            if self._step_count == self.temporal_threshold - 1:
+            if self._step_count == self.temporal_threshold - 1 and self.current_cycle != 1:
                 self.update_env_concept()
                 self.current_cycle = 1
 
@@ -127,12 +120,16 @@ class ActionIndependentConceptDriftWrapper(CutomGymnasiumWrapper):
         else:
             raise NotImplementedError(f"Mode {self.temporal_mode} not implemented")
 
-        obs, reward, done, info = self.env.step(action)
-        self._step_count += 1
-        return obs, reward, done, info
+        obs, reward, done, truncated, info = self.env.step(action)
+        self._noskip_step_count += 1
+        if self._noskip_step_count == self.skip:
+            self._step_count += 1
+            self._noskip_step_count = 0
+        return obs, reward, done, truncated, info
 
     def reset(self, *args, **kwargs):
         logger.debug(f"using reset() method of ActionIndependentConceptDriftWrapper")
+
         if self.current_cycle != 0:
             print(f"resetting to original concept")
             self.revert_env_concept()
@@ -140,22 +137,20 @@ class ActionIndependentConceptDriftWrapper(CutomGymnasiumWrapper):
 
         obs = self.env.reset(*args, **kwargs)
         self._step_count = 0
+        self._noskip_step_count = 0
         return obs
 
 
-class PartialObservationWrapper(CutomGymnasiumWrapper):
+class PartialObservationWrapper(ObservationWrapper):
     """Custom wrapper that modifies observations"""
 
     def __init__(self, env, config):
         super().__init__(env)
         self.config = config
-
-        # Replace the _screen method from Atari env
-        self.env._screen = self._screen
         self.manipulation = True # if false, returns original _screen behavior
 
-    def _manipulate_screen(self, array):
-        """Modify the screen in buffer"""
+    def _manipulate_obs(self, array):
+        """Modify the observation"""
 
         # add a random probability to apply the modification
         if np.random.rand() < self.config['prob']:
@@ -164,7 +159,7 @@ class PartialObservationWrapper(CutomGymnasiumWrapper):
             elif self.config['type'] == 'crop':
                 self._crop_obs_mode(array, self.config['mode'])
             elif self.config['type'] == 'ram':
-                array_modified = self._ram_obs_mode(self.env._env, self.config['mode'])
+                array_modified = self._ram_obs_mode(self.env, self.config['mode'])
                 if array_modified is not None:
                     array[:] = array_modified
             else:
@@ -179,10 +174,20 @@ class PartialObservationWrapper(CutomGymnasiumWrapper):
     def _ram_obs_mode(self, env, mode) -> np.ndarray:
         raise NotImplementedError("RAM observation modification not implemented")
 
-    def _screen(self, array):
-        self.env._ale.getScreenRGB(array)
+    def observation(self, observation):
         if self.manipulation:
-            self._manipulate_screen(array)
+            self._manipulate_obs(observation)
+        return observation
+
+    def render(self):
+        """Override render to show the modified observation"""
+        if self.render_mode == "rgb_array":
+            # Get the current observation and apply our modification
+            obs = self.env.render()
+            if obs is not None:
+                return self.observation(obs)
+        return self.env.render()
+
 
 
 class StochasticEnv:
@@ -235,6 +240,7 @@ class StochasticEnv:
 
     def get_env(self, env):
         """Apply the appropriate wrapper based on type"""
+        env = InternalGymWrapper(env)
         if self.type == 0:
             raise NotImplementedError
 
@@ -242,15 +248,13 @@ class StochasticEnv:
             wrapper_class = self.wrapper_registry.get('action_dependent')
             if wrapper_class is None:
                 raise ModuleNotFoundError("Action dependent wrapper not registered")
-            env._env = wrapper_class(env._env, config=self.config['intrinsic_stochasticity']['action_dependent'])
-            return env
+            return wrapper_class(env, config=self.config['intrinsic_stochasticity']['action_dependent'])
 
         elif self.type == 2:
             wrapper_class = self.wrapper_registry.get('action_independent_random')
             if wrapper_class is None:
                 raise ModuleNotFoundError("Action independent random wrapper not registered")
-            env._env = wrapper_class(env._env, config=self.config['intrinsic_stochasticity']['action_independent_random'])
-            return env
+            return wrapper_class(env, config=self.config['intrinsic_stochasticity']['action_independent_random'])
 
         elif self.type == 3:
             wrapper_class = self.wrapper_registry.get('action_independent_concept_drift')

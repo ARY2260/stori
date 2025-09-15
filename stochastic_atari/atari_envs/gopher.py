@@ -360,7 +360,8 @@ class GopherActionIndependentRandomStochasticityWrapper(ActionIndependentRandomS
     Modes:
         mode '0': No stochasticity.
         mode '1': Hole doesn't close (cancellation of filling of holes underground).
-        mode '2': Randomly remove (kill) one of the carrots.
+        mode '2': Hole doesn't close with reward reverted to 0 (cancellation of filling of holes underground).
+        mode '3': Randomly remove (kill) one of the carrots.
     """
 
     def __init__(self, env, config):

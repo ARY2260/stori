@@ -44,9 +44,30 @@ keys_to_action = {
                 (pygame.K_RIGHT,): 2,
                 (pygame.K_LEFT,): 3,
             },
+
+    "bankheist": {
+            # (): 0,  # NOOP
+            (pygame.K_SPACE,): 1,  # FIRE
+            (pygame.K_UP,): 2,  # UP
+            (pygame.K_RIGHT,): 3,  # RIGHT
+            (pygame.K_LEFT,): 4,   # LEFT
+            (pygame.K_DOWN,): 5,  # DOWN
+            (pygame.K_UP, pygame.K_RIGHT): 6,   # UPRIGHT
+            (pygame.K_UP, pygame.K_LEFT): 7,    # UPLEFT
+            (pygame.K_DOWN, pygame.K_RIGHT): 8, # DOWNRIGHT
+            (pygame.K_DOWN, pygame.K_LEFT): 9,  # DOWNLEFT
+            (pygame.K_UP, pygame.K_SPACE): 10,    # UPFIRE
+            (pygame.K_RIGHT, pygame.K_SPACE): 11, # RIGHTFIRE
+            (pygame.K_LEFT, pygame.K_SPACE): 12,  # LEFTFIRE
+            (pygame.K_DOWN, pygame.K_SPACE): 13,  # DOWNFIRE
+            (pygame.K_UP, pygame.K_RIGHT, pygame.K_SPACE): 14,   # UPRIGHTFIRE
+            (pygame.K_UP, pygame.K_LEFT, pygame.K_SPACE): 15,    # UPLEFTFIRE
+            (pygame.K_DOWN, pygame.K_RIGHT, pygame.K_SPACE): 16, # DOWNRIGHTFIRE
+            (pygame.K_DOWN, pygame.K_LEFT, pygame.K_SPACE): 17,  # DOWNLEFTFIRE
+            },
     }
 
-stochasticity_config = {'stochasticity_type': 4,
+stochasticity_config = {'stochasticity_type': 3,
                         'intrinsic_stochasticity': {
                             'action_dependent': {
                                 'stochastic_action_prob': 0.5
@@ -57,7 +78,7 @@ stochasticity_config = {'stochasticity_type': 4,
                                 'secondary_concept_type': 5,
                                 },
                             'action_independent_random': {
-                                'mode': '2',
+                                'mode': '3',
                                 'random_stochasticity_prob': 0.25,
                                 }
                             },
@@ -69,7 +90,7 @@ stochasticity_config = {'stochasticity_type': 4,
                         }
 
 
-env_name = "ALE/Gopher-v5" # "ALE/Boxing-v5" # "ALE/Breakout-v5"
+env_name = "ALE/BankHeist-v5" # "ALE/Boxing-v5" # "ALE/Breakout-v5"
 gymnasium.register_envs(ale_py)
 env = gymnasium.make(env_name, full_action_space=False, render_mode="rgb_array", frameskip=1, repeat_action_probability=0.0)
 game_name = env_name[4:-3].lower() # Remove first 4 characters ("ALE/") and last 3 characters ("-v5")

@@ -396,11 +396,43 @@ class BankHeistPartialObservationWrapper(PartialObservationWrapper):
     def _ram_obs_mode(self, env, mode) -> np.ndarray:
         return ram_obs_modification_mode(env, mode, get_obs=True, verbose=False)
 
+######################### Action dependent stochasticity wrapper for BankHeist #########################
+
+class BankHeistActionDependentStochasticityWrapper(ActionDependentStochasticityWrapper):
+    """
+    Wrapper that implements action dependent stochasticity in internal ale _env for BankHeist.
+    """
+
+    def __init__(self, env, config):
+        super().__init__(env, config)
+        self.prob = config['stochastic_action_prob']
+        # this is to decrease the number of fire based actions
+        # the agent can take during random action selection
+        # to avoid agent instantly dying due to fire action
+        self.restrict_fire_actions = True
+        if self.restrict_fire_actions:
+            print("restricting fire actions during random action selection")
+
+    def action(self, action):
+        logger.debug(f"using action() method of ActionDependentStochasticityWrapper")
+        if np.random.random() < self.prob:
+            # Choose random action
+            if self.restrict_fire_actions:
+                # restrict to first 10 actions
+                # Restrict sampling to first 10 actions (i.e., actions 0-9)
+                from gymnasium.spaces import Discrete
+                sample_action_space = Discrete(10)
+            else:
+                sample_action_space = self.env.action_space
+            return sample_action_space.sample()
+        else:
+            # Use predicted action
+            return action
 ######################### Wrapper registry for BankHeist #########################
 
 def get_bankheist_wrapper_registry():
     return {
-        'action_dependent': ActionDependentStochasticityWrapper,
+        'action_dependent': BankHeistActionDependentStochasticityWrapper,
         'action_independent_random': BankHeistActionIndependentRandomStochasticityWrapper,
         'action_independent_concept_drift': ActionIndependentConceptDriftWrapper,
         'partial_observation': BankHeistPartialObservationWrapper,

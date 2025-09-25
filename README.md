@@ -2,7 +2,7 @@
 
 [**TL;DR**] STORI (STOchastic-ataRI) is a benchmark that incorporates diverse stochastic effects and propose a taxonomy of stochasticity in RL environments.
 
-![STORI Overview](https://raw.githubusercontent.com/stori/stori/docs/stori_overview.png)
+<img width="4243" height="1260" alt="image" src="https://github.com/user-attachments/assets/64344769-c4c2-4729-9630-3563731c6248" />
 
 
 Quick install to play any stochasticity mode using miniconda:

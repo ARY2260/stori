@@ -15,7 +15,8 @@ pip install -r requirements.txt
 ```
 
 Play any game in interactive mode: (All modes used in Experiments are directly accessible)
-![game mode](https://raw.githubusercontent.com/stori/stori/main/docs/mode_selection.png)
+<img width="440" height="255" alt="image" src="https://github.com/user-attachments/assets/dc127155-ed5f-4de6-b18d-3f2c5634ad90" />
+
 ```
 python play_game.py
 ```

@@ -1,3 +1,21 @@
-# STORI
+# STORI: A Benchmark and Taxonomy for Stochastic Environments
 
-<img width="4485" height="2173" alt="STORI-SCHEMA" src="https://github.com/user-attachments/assets/206244c0-34b4-4dcc-8cfb-08845f47efa4" />
+[**TL;DR**] STORI (STOchastic-ataRI) is a benchmark that incorporates diverse stochastic effects and propose a taxonomy of stochasticity in RL environments.
+
+![STORI Overview](https://raw.githubusercontent.com/stori/stori/main/docs/stori_overview.png)
+
+
+Quick install to play any stochasticity mode using miniconda:
+```
+# git clone stori repository
+cd stori
+conda create -n stori-env python=3.10
+conda activate stori-env
+pip install -r requirements.txt
+```
+
+Play any game in interactive mode: (All modes used in Experiments are directly accessible)
+![game mode](https://raw.githubusercontent.com/stori/stori/main/docs/mode_selection.png)
+```
+python play_game.py
+```

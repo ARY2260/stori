@@ -1,3 +1,5 @@
 ale-py==0.10.2
 "gymnasium[atari]"
 "gymnasium[other]"
+matplotlib
+pygame

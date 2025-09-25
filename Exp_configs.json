@@ -1,0 +1,142 @@
+{
+    "Breakout": {
+        "Type 1": {
+            "stochasticity_type": "1",
+            "intrinsic_stochasticity.action_dependent.stochastic_action_prob": 0.3
+        },
+        "Type 2.1": {
+            "stochasticity_type": "2.1",
+            "intrinsic_stochasticity.action_independent_random.mode": "2",
+            "intrinsic_stochasticity.action_independent_random.random_stochasticity_prob": 0.25
+        },
+        "Type 2.2": {
+            "stochasticity_type": "2.2",
+            "intrinsic_stochasticity.action_independent_concept_drift.temporal_threshold": 300,
+            "intrinsic_stochasticity.action_independent_concept_drift.temporal_mode": "sudden",
+            "intrinsic_stochasticity.action_independent_concept_drift.secondary_concept_type": "3.2",
+            "partial_observation.type": "blackout",
+            "partial_observation.mode": "10",
+            "partial_observation.prob": 1.0
+        },
+        "Type 3.1": {
+            "stochasticity_type": "3.1"
+        },
+        "Type 3.2A": {
+            "stochasticity_type": "3.2",
+            "partial_observation.type": "blackout",
+            "partial_observation.mode": "10",
+            "partial_observation.prob": 1.0
+        },
+        "Type 3.2B": {
+            "stochasticity_type": "3.2",
+            "partial_observation.type": "crop",
+            "partial_observation.mode": "1",
+            "partial_observation.prob": 0.75
+        },
+        "Type 3.2C": {
+            "stochasticity_type": "3.2",
+            "partial_observation.type": "crop",
+            "partial_observation.mode": "5",
+            "partial_observation.prob": 1.0
+        }
+    },
+    "Boxing": {
+        "Type 1": {
+            "stochasticity_type": "1",
+            "intrinsic_stochasticity.action_dependent.stochastic_action_prob": 0.3
+        },
+        "Type 2.1": {
+            "stochasticity_type": "2.1",
+            "intrinsic_stochasticity.action_independent_random.mode": "1",
+            "intrinsic_stochasticity.action_independent_random.random_stochasticity_prob": 0.001
+        },
+        "Type 2.2": {
+            "stochasticity_type": "2.2",
+            "intrinsic_stochasticity.action_independent_concept_drift.temporal_threshold": 300,
+            "intrinsic_stochasticity.action_independent_concept_drift.temporal_mode": "sudden",
+            "intrinsic_stochasticity.action_independent_concept_drift.secondary_concept_type": "3.2",
+            "partial_observation.type": "ram",
+            "partial_observation.mode": "2",
+            "partial_observation.prob": 0.7
+        },
+        "Type 3.1": {
+            "stochasticity_type": "3.1"
+        },
+        "Type 3.2A": {
+            "stochasticity_type": "3.2",
+            "partial_observation.type": "blackout",
+            "partial_observation.mode": "9",
+            "partial_observation.prob": 1.0
+        },
+        "Type 3.2B": {
+            "stochasticity_type": "3.2",
+            "partial_observation.type": "crop",
+            "partial_observation.mode": "2",
+            "partial_observation.prob": 0.75
+        },
+        "Type 3.2C": {
+            "stochasticity_type": "3.2",
+            "partial_observation.type": "ram",
+            "partial_observation.mode": "2",
+            "partial_observation.prob": 0.7
+        }
+    },
+    "Gopher": {
+        "Type 1": {
+            "stochasticity_type": "1",
+            "intrinsic_stochasticity.action_dependent.stochastic_action_prob": 0.3
+        },
+        "Type 2.1": {
+            "stochasticity_type": "2.1",
+            "intrinsic_stochasticity.action_independent_random.mode": "2",
+            "intrinsic_stochasticity.action_independent_random.random_stochasticity_prob": 0.3
+        },
+        "Type 2.2": {
+            "stochasticity_type": "2.2",
+            "intrinsic_stochasticity.action_independent_concept_drift.temporal_threshold": 600,
+            "intrinsic_stochasticity.action_independent_concept_drift.temporal_mode": "cyclic",
+            "intrinsic_stochasticity.action_independent_concept_drift.secondary_concept_type": "3.2",
+            "partial_observation.type": "blackout",
+            "partial_observation.mode": "6",
+            "partial_observation.prob": 1.0
+        },
+        "Type 3.1": {
+            "stochasticity_type": "3.1"
+        },
+        "Type 3.2": {
+            "stochasticity_type": "3.2",
+            "partial_observation.type": "blackout",
+            "partial_observation.mode": "6",
+            "partial_observation.prob": 1.0
+        }
+    },
+    "BankHeist": {
+        "Type 1": {
+            "stochasticity_type": "1",
+            "intrinsic_stochasticity.action_dependent.stochastic_action_prob": 0.3
+        },
+        "Type 2.1": {
+            "stochasticity_type": "2.1",
+            "intrinsic_stochasticity.action_independent_random.mode": "3",
+            "intrinsic_stochasticity.action_independent_random.random_stochasticity_prob": 0.001
+        },
+        "Type 2.2": {
+            "stochasticity_type": "2.2",
+            "intrinsic_stochasticity.action_independent_concept_drift.temporal_threshold": 600,
+            "intrinsic_stochasticity.action_independent_concept_drift.temporal_mode": "cyclic",
+            "intrinsic_stochasticity.action_independent_concept_drift.secondary_concept_type": "3.2",
+            "partial_observation.type": "ram",
+            "partial_observation.mode": "3",
+            "partial_observation.prob": 0.75
+        },
+        "Type 3.1": {
+            "stochasticity_type": "3.1"
+        },
+        "Type 3.2": {
+            "stochasticity_type": "3.2",
+            "partial_observation.type": "ram",
+            "partial_observation.mode": "3",
+            "partial_observation.prob": 0.75
+        }
+    }
+}

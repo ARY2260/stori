@@ -20,3 +20,7 @@ Play any game in interactive mode: (All modes used in Experiments are directly a
 ```
 python play_game.py
 ```
+
+### Additional Note
+ - DreamerV3: The source implementation and default parameters for Atari100K config used from this code repository (MIT license): https://github.com/NM512/dreamerv3-torch
+ - STORM: The source implementation and default parameters (except eval num\_episode was set to 100) used from this code repository: https://github.com/weipu-zhang/STORM

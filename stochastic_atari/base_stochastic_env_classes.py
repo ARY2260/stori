@@ -197,10 +197,10 @@ class StochasticEnv:
     Environment types:
     0: Deterministic Env - No stochasticity or partial observability applied.
     1: Intrinsic Stochastic Env (action-dependent) - Stochasticity based on agent's actions.
-    2: Intrinsic Stochastic Env (action-independent-random) - Random stochasticity effects.
-    3: Intrinsic Stochastic Env (action-independent-concept-drift) - Concept drift over time.
-    4: Partially observed Env (state-variable-different-repr) - Different state representation.
-    5: Partially observed Env (state-variable-missing) - Missing state variables.
+    2.1: Intrinsic Stochastic Env (action-independent-random) - Random stochasticity effects.
+    2.2: Intrinsic Stochastic Env (action-independent-concept-drift) - Concept drift over time.
+    3.1: Partially observed Env (state-variable-different-repr) - Different state representation.
+    3.2: Partially observed Env (state-variable-missing) - Missing state variables.
     """
 
     SAMPLE_CONFIG = {
@@ -244,28 +244,28 @@ class StochasticEnv:
         if self.type == 0:
             raise NotImplementedError
 
-        elif self.type == 1:
+        elif self.type == '1':
             wrapper_class = self.wrapper_registry.get('action_dependent')
             if wrapper_class is None:
                 raise ModuleNotFoundError("Action dependent wrapper not registered")
             return wrapper_class(env, config=self.config['intrinsic_stochasticity']['action_dependent'])
 
-        elif self.type == 2:
+        elif self.type == '2.1':
             wrapper_class = self.wrapper_registry.get('action_independent_random')
             if wrapper_class is None:
                 raise ModuleNotFoundError("Action independent random wrapper not registered")
             return wrapper_class(env, config=self.config['intrinsic_stochasticity']['action_independent_random'])
 
-        elif self.type == 3:
+        elif self.type == '2.2':
             wrapper_class = self.wrapper_registry.get('action_independent_concept_drift')
             if wrapper_class is None:
                 raise ModuleNotFoundError("Action independent concept drift wrapper not registered")
             return wrapper_class(env, config=self.config['intrinsic_stochasticity']['action_independent_concept_drift'], StochasticEnv_instance=self)
 
-        elif self.type == 4:
+        elif self.type == '3.1':
             return env  # Default, no wrapper
 
-        elif self.type == 5:
+        elif self.type == '3.2':
             wrapper_class = self.wrapper_registry.get('partial_observation')
             if wrapper_class is None:
                 raise ModuleNotFoundError("Partial observation wrapper not registered")

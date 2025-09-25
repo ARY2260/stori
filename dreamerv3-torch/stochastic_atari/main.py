@@ -16,8 +16,8 @@ def create_stochasticity_profile(game_name: str, type: int, config: Dict[str, An
     Factory function to create StochasticEnv for any supported game.
     
     Args:
-        game_name: Name of the game (e.g., 'breakout', 'boxing')
-        type: Stochasticity type (0-5)
+        game_name: Name of the game (e.g., 'breakout', 'boxing', 'gopher', 'bankheist')
+        type: Stochasticity type (0-3.2)
         config: Configuration dictionary
         
     Returns:
@@ -27,10 +27,10 @@ def create_stochasticity_profile(game_name: str, type: int, config: Dict[str, An
     Environment types:
         0: Deterministic Env - No stochasticity or partial observability applied.
         1: Intrinsic Stochastic Env (action-dependent) - Stochasticity based on agent's actions.
-        2: Intrinsic Stochastic Env (action-independent-random) - Random stochasticity effects.
-        3: Intrinsic Stochastic Env (action-independent-concept-drift) - Concept drift over time.
-        4: Partially observed Env (state-variable-different-repr) - Different state representation.
-        5: Partially observed Env (state-variable-missing) - Missing state variables.
+        2.1: Intrinsic Stochastic Env (action-independent-random) - Random stochasticity effects.
+        2.2: Intrinsic Stochastic Env (action-independent-concept-drift) - Concept drift over time.
+        3.1: Partially observed Env (state-variable-different-repr) - Different state representation.
+        3.2: Partially observed Env (state-variable-missing) - Missing state variables.
     """
     game_name = game_name.lower()
     if game_name not in GAME_REGISTRIES:

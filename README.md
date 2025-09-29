@@ -137,4 +137,5 @@ default.
 
 ### Eval Return Results
 
-<img width="700" height="600" alt="image" src="./stori/docs/full_results.png" />
+<!-- <img width="700" height="600" alt="image" src="./stori/docs/full_results.png" /> -->
+<img width="700" height="600" alt="eval_results_plots" src="https://github.com/user-attachments/assets/32c3c760-e37b-484e-9801-e735657aab5c" />

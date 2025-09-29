@@ -1,0 +1,4 @@
+from stori.atari_envs.breakout import get_breakout_wrapper_registry
+from stori.atari_envs.boxing import get_boxing_wrapper_registry
+from stori.atari_envs.gopher import get_gopher_wrapper_registry
+from stori.atari_envs.bankheist import get_bankheist_wrapper_registry

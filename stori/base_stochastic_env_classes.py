@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Dict, Any, Type
 from gymnasium.core import ActionWrapper, ObservationWrapper, Wrapper
-from stochastic_atari.utils import crop_obs_mode
+from stori.utils import crop_obs_mode
 import logging
 
 logger = logging.getLogger(__name__)
@@ -82,10 +82,10 @@ class ActionIndependentConceptDriftWrapper(ActionWrapper):
 
     def update_env_concept(self):
         print(f"updating env concept to stochasticity type: {self.secondary_concept_type}")
-        if self.secondary_concept_type == 3:
+        if self.secondary_concept_type == '2.2':
             raise RecursionError("`Concept drift` is not supported for secondary concept")
-        if self.secondary_concept_type == 4:
-            raise ValueError("`Partial observation` is the initial concept")
+        if self.secondary_concept_type == '3.1':
+            raise ValueError("`Partial observation - 3.1` is the initial concept")
         self.StochasticEnv_instance.type = self.secondary_concept_type
         self.env = self.StochasticEnv_instance.get_env(self.env)
 
@@ -215,7 +215,7 @@ class StochasticEnv:
             'action_independent_concept_drift': {
                 'temporal_mode': 'cyclic',
                 'temporal_threshold': 5,
-                'secondary_concept_type': 1,
+                'secondary_concept_type': '3.2',
             },
         },
         'partial_observation': {

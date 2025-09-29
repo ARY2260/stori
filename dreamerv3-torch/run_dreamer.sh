@@ -1,10 +1,10 @@
 # Stochasticity type
 # 1: Intrinsic Stochastic Env (action-dependent) - Stochasticity based on agent's random actions.
-# 2: Intrinsic Stochastic Env (action-independent-random) - Random stochasticity effects.
-# 3: Intrinsic Stochastic Env (action-independent-concept-drift) - Concept drift over time.
-# 4: (DEFAULT) Partially observed Env (state-variable-different-repr) - Different state representation.
-# 5: Partially observed Env (state-variable-missing) - Missing state variables.
-stochasticity_type=5
+# 2.1: Intrinsic Stochastic Env (action-independent-random) - Random stochasticity effects.
+# 2.2: Intrinsic Stochastic Env (action-independent-concept-drift) - Concept drift over time.
+# 3.1: (DEFAULT) Partially observed Env (state-variable-different-repr) - Different state representation.
+# 3.2: Partially observed Env (state-variable-missing) - Missing state variables.
+stochasticity_type='3.1'
 
 # intrinsic_stochasticity
 action_dependent_stochastic_action_prob=0.3
@@ -16,7 +16,7 @@ action_independent_random_random_stochasticity_prob=0.25
 # action_independent_concept_drift_stochasticity
 action_independent_concept_drift_temporal_mode='sudden' # sudden, cyclic
 action_independent_concept_drift_temporal_threshold=500
-action_independent_concept_drift_secondary_concept_type=5
+action_independent_concept_drift_secondary_concept_type='3.2'
 
 # partial_observation_stochasticity
 partial_observation_type='ram' # blackout, crop, ram

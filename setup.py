@@ -10,8 +10,8 @@ setup(
     description='STORI (STOchastic-ataRI) benchmark and taxonomy for stochastic environments in reinforcement learning',
     license='MIT',
     long_description="""STORI (STOchastic-ataRI) is a benchmark and taxonomy for stochastic environments in reinforcement learning.""",
-    author='Aryan Amit Barsainyan, Jing Yu Lim, Dianbo Liu',
-    author_email='aryan.barsainyan@gmail.com, jy_lim@comp.nus.edu.sg, dianbo@nus.edu.sg',
+    author='',
+    author_email='',
     packages=find_packages(),
     install_requires=requirements,
 )

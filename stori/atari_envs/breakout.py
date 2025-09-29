@@ -1,7 +1,7 @@
 import random
 import numpy as np
-from stochastic_atari.base_stochastic_env_classes import ActionDependentStochasticityWrapper, ActionIndependentRandomStochasticityWrapper, ActionIndependentConceptDriftWrapper, PartialObservationWrapper
-from stochastic_atari.utils import update_ram_state, blackout_obs
+from stori.base_stochastic_env_classes import ActionDependentStochasticityWrapper, ActionIndependentRandomStochasticityWrapper, ActionIndependentConceptDriftWrapper, PartialObservationWrapper
+from stori.utils import update_ram_state, blackout_obs
 import logging
 
 logging.basicConfig(level=logging.INFO)

@@ -2,7 +2,7 @@ import gymnasium
 from gymnasium.utils.play import play
 import ale_py
 import pygame
-from stochastic_atari import create_stochasticity_profile
+from stori import create_stochasticity_profile
 
 keys_to_action = {
      "gopher": {
@@ -75,7 +75,7 @@ stochasticity_config = {'stochasticity_type': '3.2',
                             'action_independent_concept_drift': {
                                 'temporal_threshold': 300,
                                 'temporal_mode': 'cyclic',
-                                'secondary_concept_type': 5,
+                                'secondary_concept_type': "3.2",
                                 },
                             'action_independent_random': {
                                 'mode': '3',
@@ -320,7 +320,8 @@ def launch_mode_selector():
             type=stoch_type,
             config=stochasticity_config
         )
-        import gymnasium
+
+        gymnasium.register_envs(ale_py)
         env = gymnasium.make(env_name, full_action_space=False, render_mode="rgb_array", frameskip=1, repeat_action_probability=0.0)
         env = stochasticity_profile.get_env(env)
         root.destroy()

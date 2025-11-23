@@ -1,0 +1,7 @@
+services:
+  player1:
+    build: .
+    ports:
+      - "8081:8080" # Player 1 connects to http://your-ip:8081
+    environment:
+      - PLAYER_ID=1

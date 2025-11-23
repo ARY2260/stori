@@ -1,7 +1,90 @@
 services:
-  player1:
+  # --- IMAGE BUILDER (Build the core image once) ---
+  image_builder:
     build: .
+    image: party-arcade-image:latest # Tag the image so others can use it
+    # This service is just for building, it won't be run by default
+
+  # --- PLAYER CONTAINERS (Reference the pre-built image) ---
+
+  player1:
+    image: party-arcade-image:latest
+    depends_on:
+      - image_builder # Ensure the image is built first
     ports:
       - "8081:8080" # Player 1 connects to http://your-ip:8081
     environment:
       - PLAYER_ID=1
+    volumes:
+      - ./scores:/app/scores  # Mount scores directory to host
+    working_dir: /app
+      
+  player2:
+    image: party-arcade-image:latest
+    ports:
+      - "8082:8080" # Player 2 connects to http://your-ip:8082
+    environment:
+      - PLAYER_ID=2
+    volumes:
+      - ./scores:/app/scores  # Mount scores directory to host
+    working_dir: /app
+
+  player3:
+    image: party-arcade-image:latest
+    ports:
+      - "8083:8080"
+    environment:
+      - PLAYER_ID=3
+    volumes:
+      - ./scores:/app/scores  # Mount scores directory to host
+    working_dir: /app
+
+  player4:
+    image: party-arcade-image:latest
+    ports:
+      - "8084:8080"
+    environment:
+      - PLAYER_ID=4
+    volumes:
+      - ./scores:/app/scores  # Mount scores directory to host
+    working_dir: /app
+
+  player5:
+    image: party-arcade-image:latest
+    ports:
+      - "8085:8080"
+    environment:
+      - PLAYER_ID=5
+    volumes:
+      - ./scores:/app/scores  # Mount scores directory to host
+    working_dir: /app
+
+  player6:
+    image: party-arcade-image:latest
+    ports:
+      - "8086:8080"
+    environment:
+      - PLAYER_ID=6
+    volumes:
+      - ./scores:/app/scores  # Mount scores directory to host
+    working_dir: /app
+
+  player7:
+    image: party-arcade-image:latest
+    ports:
+      - "8087:8080"
+    environment:
+      - PLAYER_ID=7
+    volumes:
+      - ./scores:/app/scores  # Mount scores directory to host
+    working_dir: /app
+
+  player8:
+    image: party-arcade-image:latest
+    ports:
+      - "8088:8080"
+    environment:
+      - PLAYER_ID=8
+    volumes:
+      - ./scores:/app/scores  # Mount scores directory to host
+    working_dir: /app

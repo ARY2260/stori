@@ -4,6 +4,7 @@ import sys
 import traceback
 import os
 import json
+from datetime import datetime
 
 # --- Constants ---
 SCREEN_WIDTH = 800
@@ -205,6 +206,17 @@ async def main():
     
     env = None
     stochasticity_profile = None
+    episode_score = 0.0  # Track cumulative reward for current episode
+    
+    # Get service name from environment variable, default to "default"
+    service_name = os.environ.get("PLAYER_ID", "default")
+    if service_name.isdigit():
+        service_name = f"player{service_name}"
+    
+    # Create scores directory if it doesn't exist
+    scores_dir = "scores"
+    os.makedirs(scores_dir, exist_ok=True)
+    scores_file = os.path.join(scores_dir, f"{service_name}_episode_scores.json")  # JSON file to store scores
 
     while running:
         for event in pygame.event.get():
@@ -281,6 +293,7 @@ async def main():
                     env = new_env
                     
                 env.reset()
+                episode_score = 0.0  # Reset score when starting new game
                 state = "PLAYING"
             except Exception as e:
                 # Catch game load errors and show them
@@ -299,6 +312,10 @@ async def main():
                 keys = pygame.key.get_pressed()
                 action = get_action_from_keys(keys, selected_game_internal)
                 obs, reward, terminated, truncated, info = env.step(action)
+                
+                # Accumulate reward for current episode
+                episode_score += reward
+                
                 rgb_array = env.render()
                 
                 if rgb_array is not None:
@@ -318,6 +335,38 @@ async def main():
                     pygame.display.flip()
                 
                 if terminated or truncated:
+                    # Store the final score with timestamp before resetting
+                    timestamp = datetime.now().isoformat()
+                    
+                    # Create composite key with game name, subtype, and timestamp
+                    game_name = selected_game_display if selected_game_display else "Unknown"
+                    subtype = selected_type if selected_type else "No_Type"
+                    # Sanitize names for use in JSON keys (replace spaces/special chars)
+                    game_name_safe = game_name.replace(" ", "_").replace("/", "_")
+                    subtype_safe = subtype.replace(" ", "_").replace("/", "_")
+                    score_key = f"{game_name_safe}_{subtype_safe}_{timestamp}"
+                    
+                    # Load existing scores if file exists
+                    scores_data = {}
+                    if os.path.exists(scores_file):
+                        try:
+                            with open(scores_file, "r") as f:
+                                scores_data = json.load(f)
+                        except (json.JSONDecodeError, IOError):
+                            scores_data = {}
+                    
+                    # Add new score entry
+                    scores_data[score_key] = float(episode_score)
+                    
+                    # Save to JSON file
+                    try:
+                        with open(scores_file, "w") as f:
+                            json.dump(scores_data, f, indent=2)
+                        print(f"Saved score: {episode_score} for {game_name} ({subtype}) at {timestamp}")
+                    except IOError as e:
+                        print(f"Error saving score: {e}")
+                    
+                    episode_score = 0.0  # Reset for next episode
                     env.reset()
 
         clock.tick(30)

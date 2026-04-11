@@ -82,6 +82,8 @@ class ActionIndependentConceptDriftWrapper(CutomGymnasiumWrapper):
         self.temporal_mode = config['temporal_mode']
         self.temporal_threshold = config['temporal_threshold']
         self.secondary_concept_type = config['secondary_concept_type']
+        if isinstance(self.secondary_concept_type, int) or isinstance(self.secondary_concept_type, float):
+            self.secondary_concept_type = f'{self.secondary_concept_type}'
         self.StochasticEnv_instance = StochasticEnv_instance
 
     def update_env_concept(self):

@@ -77,6 +77,8 @@ class ActionIndependentConceptDriftWrapper(ActionWrapper):
         self.temporal_mode = config['temporal_mode']
         self.temporal_threshold = config['temporal_threshold']
         self.secondary_concept_type = config['secondary_concept_type']
+        if isinstance(self.secondary_concept_type, int) or isinstance(self.secondary_concept_type, float):
+            self.secondary_concept_type = f'{self.secondary_concept_type}'
         self.skip = config.get('skip', 1) # since skip is not part of original env, we need to add it here
         self.StochasticEnv_instance = StochasticEnv_instance
 
